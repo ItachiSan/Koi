@@ -41,8 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
   ui->resMsg->addAction(actionRes);
 }
 MainWindow::~MainWindow() {
-    this->setVisible(0);
-    delete ui;
+  this->setVisible(0);
+  delete ui;
 }
 
 // Override window managing events
@@ -212,6 +212,18 @@ void MainWindow::loadPrefs() {
   ui->darkDropKvantumStyle->setCurrentText(
       utils.settings->value("KvantumStyle/dark").toString());
 
+  // Load Konsole profile settings
+  if (utils.settings->value("KonsoleProfile/enabled").toBool()) {
+    ui->konsoleStyleCheckBox->setChecked(true);
+  } else {
+    ui->konsoleStyleCheckBox->setChecked(false);
+  }
+  // sets the displayed text on the combo box of the kvantum style.
+  ui->lightDropKonsoleStyle->setCurrentText(
+      utils.settings->value("KonsoleProfile/light").toString());
+  ui->darkDropKonsoleStyle->setCurrentText(
+      utils.settings->value("KonsoleProfile/dark").toString());
+
   // Load Wallpaper prefs
   if (utils.settings->value("Wallpaper/enabled").toBool()) {
     ui->wallCheckBox->setChecked(true);
@@ -306,6 +318,16 @@ void MainWindow::savePrefs() {
   utils.settings->setValue("KvantumStyle/light", lightKvantumStyle);
   utils.settings->setValue("KvantumStyle/dark", darkKvantumStyle);
 
+  // Konsole Profile enabling
+  if (ui->konsoleStyleCheckBox->isChecked() == 0) {
+    utils.settings->setValue("KonsoleProfile/enabled", false);
+  } else {
+    utils.settings->setValue("KonsoleProfile/enabled", true);
+  }
+  // Kvantum Style Theme saving Prefs
+  utils.settings->setValue("KonsoleProfile/light", lightKonsole);
+  utils.settings->setValue("KonsoleProfile/dark", darkKonsole);
+
   // Wallpaper enabling
   if (ui->wallCheckBox->isChecked() == 0) {
     utils.settings->setValue("Wallpaper/enabled", false);
@@ -362,6 +384,13 @@ void MainWindow::refreshDirs() // Refresh function to find new themes
   ui->lightDropKvantumStyle->addItems(
       kvantumStyle); // adds the new loaded kvantum styles
   ui->darkDropKvantumStyle->addItems(kvantumStyle);
+  // Refresh Konsole Profiles
+  QStringList konsoleProfiles = utils.getKonsoleProfiles();
+  ui->lightDropKonsoleStyle->clear();
+  ui->lightDropKonsoleStyle->addItems(konsoleProfiles);
+  ui->darkDropKonsoleStyle->clear();
+  ui->darkDropKonsoleStyle->addItems(konsoleProfiles);
+
   loadPrefs();
 }
 void MainWindow::toggleVisibility() {
@@ -432,6 +461,17 @@ int MainWindow::prefsSaved() // Lots of ifs, don't know how to do it any other
       utils.settings->value("KvantumStyle/dark").toString()) {
     return 0;
   }
+  if (ui->konsoleStyleCheckBox->isChecked() !=
+      utils.settings->value("KonsoleProfile/enabled").toBool()) {
+    return 0;
+  }
+  if (lightKonsole !=
+      utils.settings->value("KonsoleProfile/light").toString()) {
+    return 0;
+  }
+  if (darkKonsole != utils.settings->value("KonsoleProfile/dark").toString()) {
+    return 0;
+  }
   if (ui->wallCheckBox->isChecked() !=
       utils.settings->value("Wallpaper/enabled").toBool()) {
     return 0;
@@ -454,7 +494,7 @@ int MainWindow::prefsSaved() // Lots of ifs, don't know how to do it any other
   }
   return 1;
 }
-void MainWindow::scheduleLight(Bosma::Scheduler& s) {
+void MainWindow::scheduleLight(Bosma::Scheduler &s) {
   int lightCronMin =
       QTime::fromString(utils.settings->value("time-light").toString())
           .minute();
@@ -470,7 +510,7 @@ void MainWindow::scheduleLight(Bosma::Scheduler& s) {
                           std::to_string(lightCronHr) + " * * *";
   s.cron(lightCron, [this]() { utils.goLight(); });
 }
-void MainWindow::scheduleDark(Bosma::Scheduler& s) {
+void MainWindow::scheduleDark(Bosma::Scheduler &s) {
   int darkCronMin =
       QTime::fromString(utils.settings->value("time-dark").toString()).minute();
   int darkCronHr =
@@ -486,7 +526,7 @@ void MainWindow::scheduleDark(Bosma::Scheduler& s) {
   s.cron(darkCron, [this]() { utils.goDark(); });
 }
 
-void MainWindow::scheduleSunEvent(Bosma::Scheduler& s) {
+void MainWindow::scheduleSunEvent(Bosma::Scheduler &s) {
   // Schedules a theme change for the next sunrise or sunfall
   double latitude = utils.settings->value("latitude").toDouble();
   double longitude = utils.settings->value("longitude").toDouble();
@@ -503,7 +543,8 @@ void MainWindow::scheduleSunEvent(Bosma::Scheduler& s) {
       (!sr.hasSet || (sr.hasSet && sr.setTime < sr.queryTime))) {
     // No events found in the next SR_WINDOW/2 hours, check again later - may
     // happen in polar regions
-    s.in(std::chrono::hours(SR_WINDOW / 2), [this, &s]() { scheduleSunEvent(s); });
+    s.in(std::chrono::hours(SR_WINDOW / 2),
+         [this, &s]() { scheduleSunEvent(s); });
   } else if (sr.hasRise && sr.riseTime > sr.queryTime) {
     timeinfo = localtime(&sr.riseTime);
     strftime(buffer, 20, "%Y-%m-%d %H:%M:%S", timeinfo);
@@ -625,6 +666,11 @@ void MainWindow::on_kvantumStyleCheckBox_stateChanged(
   ui->darkDropKvantumStyle->setEnabled(kvantumStyleEnabled);
   ui->darkKvantumStyle->setEnabled(kvantumStyleEnabled);
 }
+// Enable Konsole profiles plugin
+void MainWindow::on_konsoleStyleCheckBox_stateChanged(int konsoleEnabled) {
+  ui->lightDropKonsoleStyle->setEnabled(konsoleEnabled);
+  ui->darkDropKonsoleStyle->setEnabled(konsoleEnabled);
+}
 void MainWindow::on_lightDropStyle_currentTextChanged(
     const QString &lightStyleUN) // Set light plasma style
 {
@@ -673,6 +719,17 @@ void MainWindow::on_darkDropGtk_currentTextChanged(
 {
   darkGtk = darkGtkUN;
 }
+
+// Hooks for Konsole profile QComboBox.
+void MainWindow::on_lightDropKonsoleStyle_currentTextChanged(
+    const QString &lightKonsoleUN) {
+  lightKonsole = lightKonsoleUN;
+}
+void MainWindow::on_darkDropKonsoleStyle_currentTextChanged(
+    const QString &darkKonsoleUN) {
+  darkKonsole = darkKonsoleUN;
+}
+
 void MainWindow::on_lightDropKvantumStyle_currentTextChanged(
     const QString
         &lightKvantumStyleUN) // sets the kvantum style from the drop menu

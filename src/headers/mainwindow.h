@@ -11,7 +11,7 @@
 // Headers
 #include "utils.h"
 
-namespace Bosma{
+namespace Bosma {
 class Scheduler;
 }
 
@@ -40,9 +40,9 @@ private slots:
   void savePrefs();
   void toggleVisibility();
   int prefsSaved();
-  void scheduleLight(Bosma::Scheduler& s);
-  void scheduleDark(Bosma::Scheduler& s);
-  void scheduleSunEvent(Bosma::Scheduler& s);
+  void scheduleLight(Bosma::Scheduler &s);
+  void scheduleDark(Bosma::Scheduler &s);
+  void scheduleSunEvent(Bosma::Scheduler &s);
 
   void on_prefsBtn_clicked();
   void on_backBtn_clicked();
@@ -56,6 +56,7 @@ private slots:
   void on_iconCheckBox_stateChanged(int arg1);
   void on_gtkCheckBox_stateChanged(int arg1);
   void on_kvantumStyleCheckBox_stateChanged(int arg1);
+  void on_konsoleStyleCheckBox_stateChanged(int arg1);
   void on_wallCheckBox_stateChanged(int arg1);
   void on_scriptCheckBox_stateChanged(int arg1);
   void on_autoCheckBox_stateChanged(int arg1);
@@ -77,6 +78,8 @@ private slots:
   void on_darkDropColor_currentTextChanged(const QString &arg1);
   void on_lightDropGtk_currentTextChanged(const QString &arg1);
   void on_darkDropGtk_currentTextChanged(const QString &arg1);
+  void on_lightDropKonsoleStyle_currentTextChanged(const QString &arg1);
+  void on_darkDropKonsoleStyle_currentTextChanged(const QString &arg1);
   void on_lightDropIcon_currentTextChanged(const QString &arg1);
   void on_darkDropIcon_currentTextChanged(const QString &arg1);
   void on_lightDropKvantumStyle_currentTextChanged(const QString &arg1);
@@ -102,6 +105,8 @@ private:
   QString darkColor;
   QString lightIcon;
   QString darkIcon;
+  QString lightKonsole;
+  QString darkKonsole;
   QString lightGtk;
   QString darkGtk;
   QString lightWall;

@@ -15,6 +15,7 @@
 #include "src/plugins/colorscheme.h"
 #include "src/plugins/gtk.h"
 #include "src/plugins/icons.h"
+#include "src/plugins/konsole.h"
 #include "src/plugins/kvantumstyle.h"
 #include "src/plugins/plasmastyle.h"
 #include "src/plugins/script.h"
@@ -42,6 +43,7 @@ public:
   QStringList getCursorThemes(void);
   QStringList getGtkThemes(void);
   QStringList getKvantumStyles(void);
+  QStringList getKonsoleProfiles(void);
 
   void notify(QString notifySummary = "", QString notifyBody = "",
               int timeoutms = 5000);
@@ -59,6 +61,8 @@ public:
   void goDarkIcons();
   void goLightGtk();
   void goDarkGtk();
+  void goLightKonsole();
+  void goDarkKonsole();
   void goLightKvantumStyle();
   void goDarkKvantumStyle();
   void goLightWall();
@@ -75,6 +79,7 @@ private:
   Wallpaper wallpaper;
   KvantumStyle kvantumStyle;
   Script script;
+  Konsole konsole;
 
   QDBusInterface* notifyInterface = nullptr;
 };
